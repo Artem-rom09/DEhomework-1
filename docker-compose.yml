@@ -1,0 +1,39 @@
+
+
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: artem228      
+      MYSQL_DATABASE: my_ad_data
+      MYSQL_USER: me
+      MYSQL_PASSWORD: artem228
+      MYSQL_ALLOW_LOCAL_INFILE: 1
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pyour_root_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  data_loader:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_DATABASE: my_ad_data
+      DB_USER: me
+      DB_PASSWORD: artem228
+    volumes:
+      - .:/app
+
+
+volumes:
+  db_data: 
